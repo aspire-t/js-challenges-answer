@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <!-- 
+{
+  tag: 'DIV',
+  attrs:{
+  id:'app'
+  },
+  children: [
+    {
+      tag: 'SPAN',
+      children: [
+        { tag: 'A', children: [] }
+      ]
+    },
+    {
+      tag: 'SPAN',
+      children: [
+        { tag: 'A', children: [] },
+        { tag: 'A', children: [] }
+      ]
+    }
+  ]
+}
+把上诉虚拟Dom转化成下方真实Dom
+<div id="app">
+  <span>
+    <a></a>
+  </span>
+  <span>
+    <a></a>
+    <a></a>
+  </span>
+</div> -->
+    <script>
+      const vnode = {
+        tag: 'DIV',
+        attrs: {
+          id: 'app',
+        },
+        children: [
+          {
+            tag: 'SPAN',
+            children: [{ tag: 'A', children: [] }],
+          },
+          {
+            tag: 'SPAN',
+            children: [
+              { tag: 'A', children: [] },
+              { tag: 'A', children: [] },
+            ],
+          },
+        ],
+      }
+
+      function render(vnode) {
+        const { tag, attrs = {}, children } = vnode
+        const el = document.createElement(`${tag}`.toLocaleLowerCase())
+        for (let key in attrs) {
+          el.setAttribute(key, attrs[key])
+        }
+
+        children.forEach((child) => {
+          const childEl = render(child)
+          el.appendChild(childEl)
+        })
+        return el
+      }
+
+      const body = document.querySelector('body')
+      body.appendChild(render(vnode))
+    </script>
+  </body>
+</html>
