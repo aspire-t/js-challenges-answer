@@ -9,6 +9,7 @@ function myInstanceof (left, right) {
 		proto = Object.getPrototypeOf(proto)
 	}
 }
+
 function Person () { };
 var p = new Person()
 
