@@ -21,52 +21,83 @@
 // 代码实现如下：
 
 // javascript
+// async function execute (tasks, retries) {
+// 	for (let task of tasks) {
+// 		let attempts = 0
+// 		while (attempts <= retries) {
+// 			try {
+// 				await task()
+// 				break // 任务成功，跳出循环
+// 			} catch (error) {
+// 				attempts++
+// 				if (attempts > retries) {
+// 					throw new Error(`Task failed after ${retries} retries: ${error}`)
+// 				}
+// 			}
+// 		}
+// 	}
+// }
+
+const tasks = [
+	() => new Promise((resolve, reject) => setTimeout(resolve, 1000, '任务1完成')),
+	() => new Promise((resolve, reject) => setTimeout(reject, 1000, '任务2失败')),
+	() => new Promise((resolve, reject) => setTimeout(resolve, 1000, '任务3完成')),
+	() => new Promise((resolve, reject) => reject('任务4失败')),
+]
+
+
 async function execute (tasks, retries) {
-	for (let task of tasks) {
+	for(let task of tasks) {
 		let attempts = 0
 		while (attempts <= retries) {
 			try {
 				await task()
-				break // 任务成功，跳出循环
-			} catch (error) {
+				break
+			} catch(error) {
 				attempts++
 				if (attempts > retries) {
-					throw new Error(`Task failed after ${retries} retries: ${error.message}`)
+					throw new Error(error)
 				}
 			}
 		}
 	}
 }
 
-// function execute (tasks, retries) {
-// 	return new Promise(async (resolve, reject) => {
-// 		try {
-// 			for (let i = 0; i < tasks.length; i++) {
-// 				let task = tasks[i]
-// 				for (let j = 0; j <= retries; j++) {
-// 					try {
-// 						// 执行任务并等待其完成
-// 						let result = await task()
-// 						// 如果任务成功，继续执行下一个任务
-// 						break
-// 					} catch (error) {
-// 						// 如果是最后一次重试，抛出异常
-// 						if (j === retries) {
-// 							reject(new Error(`Task${i + 1} failed after${retries + 1} attempts`))
-// 						}
+execute(tasks, 3).then(() => {
+	console.log('All tasks completed successfully')
+}).catch((error) => {
+	console.error(`任务执行失败：${error}`)
+});
+
+
+// function promiseSeries (tasks, retryTimes) {
+// 	// 内部函数，用于执行单个任务，并重试指定次数
+// 	function runTask (task, retryCount) {
+// 		return new Promise((resolve, reject) => {
+// 			task()
+// 				.then(resolve)
+// 				.catch((error) => {
+// 					if (retryCount > 0) {
+// 						console.log(`任务失败，正在重试... 剩余重试次数：${retryCount - 1}`)
+// 						runTask(task, retryCount - 1).then(resolve).catch(reject)
+// 					} else {
+// 						reject(error)
 // 					}
-// 				}
-// 			}
-// 			// 所有任务都成功执行，resolve Promise
-// 			resolve()
-// 		} catch (error) {
-// 			// 如果在执行过程中抛出异常，reject Promise
-// 			reject(error)
-// 		}
+// 				})
+// 		})
+// 	}
+// 	// 串行执行任务
+// 	let result = Promise.resolve()
+// 	tasks.forEach((task) => {
+// 		result = result.then(() => runTask(task, retryTimes))
 // 	})
+// 	return result
 // }
 
 
+// promiseSeries(tasks, 2)
+// 	.then(() => console.log('所有任务完成'))
+// 	.catch((error) => console.log(`执行失败：${error}`));
 // 代码解释：
 
 // - 首先， execute  函数返回一个  Promise 。
@@ -86,12 +117,35 @@ async function execute (tasks, retries) {
 // 这样就满足了题目中任务串行执行、重试以及成功失败处理的要求。假设  task1 、 task2 、 task3  是已经定义好的函数，你可以这样调用  execute  函数：
 
 
-let s = [task1, task2, task3]
-execute(s, 3).then(() => {
-	console.log('All tasks completed successfully')
-}).catch((error) => {
-	console.error(error)
-});
- 
- 
+
+
 // 这里假设最大重试次数为  3 ，你可以根据实际需求调整这个值。
+
+// function compile (template, exprObj) {
+// 	return template.replace(/\$\{(.*?)\}/g, (match, expr) => {
+// 		// 拆分表达式路径（支持对象嵌套和数组索引）
+// 		const keys = expr.split(/[\.$$$$]/g).filter(k => k !== '')
+// 		let value = exprObj
+
+// 		// 递归访问嵌套属性
+// 		for (const key of keys) {
+// 			// 处理数组索引（如 items[0] → key为 "0"）
+// 			const normalizedKey = key.endsWith(']') ? key.slice(0, -1) : key
+// 			value = value[normalizedKey]
+// 			if (value === undefined) break // 路径不存在则终止
+// 		}
+// 		return value !== undefined ? value : match // 保留未匹配的占位符
+// 	})
+// }
+
+// const template = "Hello, ${user.name}! Your balance is ${user.balance}. You have ${user.items[0]} in your cart."
+// const exprObj = {
+// 	user: {
+// 		name: "Alice",
+// 		balance: 100.50,
+// 		items: ["Item1", "Item2"]
+// 	}
+// }
+
+// const compiledString = compile(template, exprObj) // 输出: Hello, Alice! Your balance is 100.50. You have Item1 in your cart.
+// console.log(compiledString)
