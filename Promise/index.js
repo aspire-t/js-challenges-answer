@@ -1,46 +1,29 @@
-function concurrentRequests (tasks, maxConcurrent = 10) {
-	if (tasks.length === 0) {
-		return Promise.resolve([])
+const tasks = [
+	() => new Promise((resolve, reject) => setTimeout(resolve, 1000, '任务1完成')),
+	() => new Promise((resolve, reject) => setTimeout(reject, 1000, '任务2失败')),
+	() => new Promise((resolve, reject) => setTimeout(resolve, 1000, '任务3完成')),
+	() => new Promise((resolve, reject) => reject('任务4失败')),
+]
+
+async function execute (tasks, retries) {
+	for (let task of tasks) {
+		let attempts = 0
+		while (attempts < retries) {
+			try {
+				await task()
+				break
+			} catch (error) {
+				attempts++
+				if (attempts >= retries) {
+					throw new Error(error)
+				}
+			}
+		}
 	}
-
-	return new Promise((resolve, reject) => {
-		let nextIndex = 0 // 记录下一个任务的索引
-		let finishCount = 0 // 记录已完成的任务数
-		let results = []
-		async function _request () {
-			if (nextIndex >= tasks.length) {
-				return
-			}
-			const i = nextIndex
-			const task = await tasks[nextIndex++]()
-			results[i] = task
-			finishCount++
-			if (finishCount === task.length) {
-				resolve(results)
-			}
-			_request() // 递归调用，执行下一个任务
-		}
-
-		for (let i = 0; i < maxConcurrent; i++) {
-			_request()
-		}
-	})
 }
 
-const generateTasks = (numTasks) => {
-	const tasks = []
-	for (let i = 0; i < numTasks; i++) {
-		const delay = Math.random() * 1000
-		tasks.push(() => new Promise((resolve) => {
-			setTimeout(() => resolve(`Task ${i} done`), delay)
-		}))
-	}
-	return tasks
-}
-
-const tasks = generateTasks(20)
-
-concurrentRequests(tasks, 2)
-	.then(results => console.log(results))
-	.catch(error => console.error(error))
-
+execute(tasks, 3).then(() => {
+	console.log('All tasks completed successfully')
+}).catch((error) => {
+	console.error(`任务执行失败：${error}`)
+})
