@@ -1,29 +1,21 @@
-const tasks = [
-	() => new Promise((resolve, reject) => setTimeout(resolve, 1000, '任务1完成')),
-	() => new Promise((resolve, reject) => setTimeout(reject, 1000, '任务2失败')),
-	() => new Promise((resolve, reject) => setTimeout(resolve, 1000, '任务3完成')),
-	() => new Promise((resolve, reject) => reject('任务4失败')),
-]
+function mySetInterval (fn, a, b) {
+	let count = 0
+	let timer = null
+	function execute () {
+		fn()
+		const delay = a + count * b
+		count++
+		timer = setTimeout(execute, delay)
+	}
 
-async function execute (tasks, retries) {
-	for (let task of tasks) {
-		let attempts = 0
-		while (attempts < retries) {
-			try {
-				await task()
-				break
-			} catch (error) {
-				attempts++
-				if (attempts >= retries) {
-					throw new Error(error)
-				}
-			}
-		}
+	timer = setTimeout(execute, a)
+	return {
+		clear: () => clearTimeout(timer)
 	}
 }
 
-execute(tasks, 3).then(() => {
-	console.log('All tasks completed successfully')
-}).catch((error) => {
-	console.error(`任务执行失败：${error}`)
-})
+const interval = mySetInterval(
+	() => console.log("执行"),
+	1000,  // a=1秒
+	2000    // b=2秒
+)
